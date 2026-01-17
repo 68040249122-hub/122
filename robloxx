@@ -1,0 +1,73 @@
+-- การตั้งค่าเบื้องต้น
+local MapSize = 100          -- ขนาดความกว้าง/ยาวของแมพ
+local WallHeight = 10        -- ความสูงของกำแพง
+local ObstacleCount = 40     -- จำนวนสิ่งกีดขวางที่จะสุ่มเกิด
+local TileSize = 4           -- ขนาดของสิ่งกีดขวาง (4x4)
+
+-- สร้าง Folder เพื่อเก็บชิ้นส่วนแมพให้เป็นระเบียบ
+local mapFolder = Instance.new("Folder")
+mapFolder.Name = "GeneratedMap"
+mapFolder.Parent = workspace
+
+-- 1. ฟังก์ชันสร้างพื้น (Floor)
+local function createFloor()
+	local floor = Instance.new("Part")
+	floor.Name = "Floor"
+	floor.Size = Vector3.new(MapSize, 1, MapSize)
+	floor.Position = Vector3.new(0, 0, 0)
+	floor.Anchored = true
+	floor.BrickColor = BrickColor.new("Grass green")
+	floor.Material = Enum.Material.Grass
+	floor.Parent = mapFolder
+end
+
+-- 2. ฟังก์ชันสร้างกำแพงรอบด้าน (Walls)
+local function createWalls()
+	local positions = {
+		Vector3.new(0, WallHeight/2, MapSize/2 + 1),  -- หน้า
+		Vector3.new(0, WallHeight/2, -MapSize/2 - 1), -- หลัง
+		Vector3.new(MapSize/2 + 1, WallHeight/2, 0),  -- ขวา
+		Vector3.new(-MapSize/2 - 1, WallHeight/2, 0)  -- ซ้าย
+	}
+	
+	for i, pos in ipairs(positions) do
+		local wall = Instance.new("Part")
+		wall.Name = "Wall"
+		wall.Anchored = true
+		wall.BrickColor = BrickColor.new("Dark stone grey")
+		wall.Material = Enum.Material.Slate
+		wall.Position = pos
+		wall.Parent = mapFolder
+		
+		-- ปรับขนาดกำแพงตามทิศทาง
+		if pos.Z == 0 then
+			wall.Size = Vector3.new(2, WallHeight, MapSize + 2)
+		else
+			wall.Size = Vector3.new(MapSize + 2, WallHeight, 2)
+		end
+	end
+end
+
+-- 3. ฟังก์ชันสร้างสิ่งกีดขวางแบบสุ่ม (Obstacles)
+local function generateObstacles()
+	for i = 1, ObstacleCount do
+		local part = Instance.new("Part")
+		part.Name = "Obstacle"
+		part.Anchored = true
+		
+		-- สุ่มขนาดความสูง
+		local randomHeight = math.random(4, 15)
+		part.Size = Vector3.new(TileSize, randomHeight, TileSize)
+		
+		-- สุ่มตำแหน่ง (ให้อยู่ภายในแมพ)
+		local halfSize = MapSize / 2 - 5
+		local randomX = math.random(-halfSize, halfSize)
+		local randomZ = math.random(-halfSize, halfSize)
+		part.Position = Vector3.new(randomX, randomHeight/2, randomZ)
+		
+		-- สุ่มสี
+		part.BrickColor = BrickColor.Random()
+		part.Material = Enum.Material.Plastic
+		part.Parent = mapFolder
+	end
+end
